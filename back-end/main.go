@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	database "example.com/StuDuwo/back-end/db"
 	"github.com/gofiber/fiber/v2"
@@ -35,11 +36,11 @@ func post_new_rental(c *fiber.Ctx) error {
 	// }
 	collection := database.Get_Collection("rentals")
 
-	_, err := collection.InsertOne(context.TODO(), sample_post)
+	npost, err := collection.InsertOne(context.TODO(), sample_post)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Error inserting new post")
 	}
-	return nil
+	return c.JSON(npost)
 }
 
 func main() {
@@ -51,9 +52,9 @@ func main() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello world")
-	})
+	app.Post("/", post_new_rental)
+
+	app.Get("/", get_all_rentals)
 
 	app.Listen(":3000")
 
@@ -71,6 +72,7 @@ func init_App() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("DB setup done")
 	return nil
 
 }

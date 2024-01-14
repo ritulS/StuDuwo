@@ -13,7 +13,7 @@ import (
 var Db_client *mongo.Client
 
 func Get_Collection(name string) *mongo.Collection {
-	return Db_client.Database("rental_db").Collection(name)
+	return Db_client.Database("test").Collection(name)
 }
 
 func Init_db() error {
