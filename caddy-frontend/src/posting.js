@@ -1,17 +1,30 @@
 import * as React from "react";
 import house from "./house-unsplash.jpg";
 
-function formSubmit(e) {
+async function formSubmit(e, url) {
   e.preventDefault();
+  const form = document.querySelector("#listing_info");
+  const formData = new FormData(form);
+  console.log(formData);
+  
+  try {
+       const response = await fetch(`${url}/new_listing`, {
+         method: "POST",
+         body: formData
+        }) 
+  } catch (e){
+      console.error(e)
+  }
 }
 
-export function Posting() {
+export function Posting(props) {
   const [img, updateImage] = React.useState(house);
   const updateImagePreview = (e) => {
     const newImageSrc = URL.createObjectURL(e.target.files[0]);
     updateImage(newImageSrc);
   };
 
+  const submit_listing_form = (e) => formSubmit(e, props.url);
   return (
     <div className="w-full max-w-full typo-bg min-h-screen">
       <div className="w-full flex justify-center pt-20">
@@ -25,8 +38,9 @@ export function Posting() {
             }}
           ></div>
           <form
-            onSubmit={formSubmit}
+            onSubmit={submit_listing_form}
             className="bg-white shadow-md rounded px-8 pt-6 pb-8"
+            id="listing_info"
           >
             <div className="mb-4">
               <label
