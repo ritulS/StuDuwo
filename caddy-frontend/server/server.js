@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 
 const app = express();
-
+const mult = multer();
 app.use(cors());
 
 app.get("/total_listings", (req, res) => {
@@ -66,7 +67,7 @@ app.get("/listings/:page", (req, res) => {
   }
 });
 
-app.post("/new_listing", (req, res) => {
+app.post("/new_listing", mult.any(), (req, res) => {
   console.log("received listing!\n");
   console.log(req.body);
   res.status(201).send();

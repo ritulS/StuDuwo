@@ -5,8 +5,6 @@ async function formSubmit(e, url) {
   e.preventDefault();
   const form = document.querySelector("#listing_info");
   const formData = new FormData(form);
-  console.log(formData);
-  
   try {
        const response = await fetch(`${url}/new_listing`, {
          method: "POST",
