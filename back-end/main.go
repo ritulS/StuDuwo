@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	database "example.com/StuDuwo/back-end/db"
 	"github.com/gofiber/fiber/v2"
@@ -14,30 +15,47 @@ type Rental_post struct {
 	House_name  string `json:"house_name"`
 	Location    string `json:"location"`
 	Start_date  string `json:"start_date"`
-	Rent        int    `json:"rent"`
+	Rent        string `json:"rent"`
 	Description string `json:"description"`
 	Image_URL   string `json:"image_url"`
 }
 
 func get_all_rentals(c *fiber.Ctx) error {
-	return nil
+	collection := database.Get_Collection("rentals")
+
+	var rental_list []Rental_post
+
+	cur, err := collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		log.Println("Error finding documents: ", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
+	}
+	defer cur.Close(context.Background())
+	fmt.Println("Cursor sucess")
+	if err := cur.All(context.Background(), &rental_list); err != nil {
+		log.Println("Error making rental list: ", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
+	}
+	fmt.Println(rental_list)
+	return c.JSON(rental_list)
 }
 
 func post_new_rental(c *fiber.Ctx) error {
-	sample_post := bson.M{"house_name": "Uilenstede",
-		"location":    "Amstelveen",
-		"start_date":  "Feb 1",
-		"rent":        "500",
-		"description": "Nice house",
-		"image_url":   "dummy_url"}
-
-	// if err := c.BodyParser(new_post); err != nil {
-	// 	return err
-	// }
+	// sample_post := bson.M{"house_name": "Uilenstede",
+	// 	"location":    "Amstelveen",
+	// 	"start_date":  "Feb 1",
+	// 	"rent":        "500",
+	// 	"description": "Nice house",
+	// 	"image_url":   "dummy_url"}
+	var new_post Rental_post
+	if err := c.BodyParser(new_post); err != nil {
+		return err
+	}
 	collection := database.Get_Collection("rentals")
 
-	npost, err := collection.InsertOne(context.TODO(), sample_post)
+	npost, err := collection.InsertOne(context.TODO(), new_post)
 	if err != nil {
+		log.Println("Error inserting new post: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error inserting new post")
 	}
 	return c.JSON(npost)
