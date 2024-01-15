@@ -1,11 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 
-	database "example.com/StuDuwo/back-end/db"
+	database "example.com/StuDuwo/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,14 +24,14 @@ func get_all_rentals(c *fiber.Ctx) error {
 
 	var rental_list []Rental_post
 
-	cur, err := collection.Find(context.Background(), bson.M{})
+	cur, err := collection.Find(c.Context(), bson.M{})
 	if err != nil {
 		log.Println("Error finding documents: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
 	}
-	defer cur.Close(context.Background())
+	defer cur.Close(c.Context())
 	fmt.Println("Cursor sucess")
-	if err := cur.All(context.Background(), &rental_list); err != nil {
+	if err := cur.All(c.Context(), &rental_list); err != nil {
 		log.Println("Error making rental list: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
 	}
@@ -53,7 +52,7 @@ func post_new_rental(c *fiber.Ctx) error {
 	}
 	collection := database.Get_Collection("rentals")
 
-	npost, err := collection.InsertOne(context.TODO(), new_post)
+	npost, err := collection.InsertOne(c.Context(), new_post)
 	if err != nil {
 		log.Println("Error inserting new post: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error inserting new post")
