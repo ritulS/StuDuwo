@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	database "example.com/StuDuwo/db"
 	"github.com/gofiber/fiber/v2"
@@ -10,16 +11,41 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+// type Rental_post struct {
+// 	House_name  string `json:"house_name"`
+// 	Location    string `json:"location"`
+// 	Start_date  string `json:"start_date"`
+// 	Rent        string `json:"rent"`
+// 	Description string `json:"description"`
+// 	Image_URL   string `json:"image_url"`
+// }
+
 type Rental_post struct {
-	House_name  string `json:"house_name"`
-	Location    string `json:"location"`
-	Start_date  string `json:"start_date"`
-	Rent        string `json:"rent"`
-	Description string `json:"description"`
-	Image_URL   string `json:"image_url"`
+	ID_          string `json:"_id,omitempty" form:"_id,omitempty"`
+	Listing_name string `json:"listing_name" form:"listing_name"`
+	Owner_email  string `json:"owner_email" form:"owner_email"`
+	Address1     string `json:"address1" form:"address1"`
+	Address2     string `json:"address2" form:"address2"`
+	Pincode      string `json:"pincode" form:"pincode"`
+	Apt_img      string `json:"apt_img" form:"apt_img"`
+	Price        string `json:"price" form:"price"`
+	Rooms        string `json:"rooms" form :"rooms"`
 }
 
-func get_all_rentals(c *fiber.Ctx) error {
+func total_listings(c *fiber.Ctx) error { // Get total number of listings
+
+	collection := database.Get_Collection("rentals")
+	count, _ := collection.CountDocuments(c.Context(), nil)
+
+	//fmt.Println(count)
+	response := struct {
+		Total_listings int `json:"total_listings"`
+	}{Total_listings: int(count)}
+
+	return c.JSON(response)
+}
+
+func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
 	collection := database.Get_Collection("rentals")
 
 	var rental_list []Rental_post
@@ -30,28 +56,48 @@ func get_all_rentals(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
 	}
 	defer cur.Close(c.Context())
-	fmt.Println("Cursor sucess")
+
 	if err := cur.All(c.Context(), &rental_list); err != nil {
 		log.Println("Error making rental list: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
 	}
-	fmt.Println(rental_list)
-	return c.JSON(rental_list)
+	//fmt.Println(rental_list)
+	// Send only required page
+	spage := c.Params("*")
+	page, err := strconv.Atoi(spage)
+	fmt.Println(page)
+	var page_list []Rental_post
+	page_size := 20
+	start_idx := (page - 1) * page_size
+	last_idx := start_idx + page_size
+
+	if last_idx >= 0 && last_idx < len(rental_list) { // if listings more than page
+		page_list = rental_list[start_idx:last_idx]
+	} else {
+		page_list = rental_list[start_idx:]
+	}
+
+	return c.JSON(page_list)
 }
 
 func post_new_rental(c *fiber.Ctx) error {
-	// sample_post := bson.M{"house_name": "Uilenstede",
-	// 	"location":    "Amstelveen",
-	// 	"start_date":  "Feb 1",
-	// 	"rent":        "500",
-	// 	"description": "Nice house",
-	// 	"image_url":   "dummy_url"}
+	// sample_post := Rental_post{
+	//	ID_:          "1"
+	// 	Listing_name: "Uilenstede",
+	// 	Owner_email:  "owner@example.com",
+	// 	Address1:     "123 Main St",
+	// 	Address2:     "Apt 456",
+	// 	Pincode:      "12345",
+	// 	Apt_img:      "apt_image.jpg",
+	// 	Price:        "$1000",
+	// 	Rooms:        "3",
+	// }
 	var new_post Rental_post
-	if err := c.BodyParser(new_post); err != nil {
+	if err := c.BodyParser(new_post); err != nil { //multipart form data
 		return err
 	}
 	collection := database.Get_Collection("rentals")
-
+	// new_post.ID_ = generateUniqueID()
 	npost, err := collection.InsertOne(c.Context(), new_post)
 	if err != nil {
 		log.Println("Error inserting new post: ", err)
@@ -69,11 +115,13 @@ func main() {
 
 	app := fiber.New()
 
-	app.Post("/", post_new_rental)
+	app.Post("/new_listing", post_new_rental)
 
-	app.Get("/", get_all_rentals)
+	app.Get("/listings/*", get_all_listings)
 
-	app.Listen(":3000")
+	app.Get("/total_listings", total_listings)
+
+	app.Listen(":5000")
 
 }
 
