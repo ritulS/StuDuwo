@@ -149,3 +149,15 @@ func loadEnv() error {
 	}
 	return nil
 }
+
+// {
+//	"_id": "123"
+// 	"listing_name": "Uilenstede",
+// 	"owner_email": "owner@example.com",
+// 	"address1": "123 Main St",
+// 	"address2": "Apt 456",
+// 	"pincode": "12345",
+// 	"apt_img": "apt_image.jpg",
+// 	"price": "$1000",
+// 	"rooms": "3"
+//   }
