@@ -6,12 +6,12 @@ async function formSubmit(e, url) {
   const form = document.querySelector("#listing_info");
   const formData = new FormData(form);
   try {
-       const response = await fetch(`${url}/new_listing`, {
-         method: "POST",
-         body: formData
-        }) 
-  } catch (e){
-      console.error(e)
+    const response = await fetch(`${url}/new_listing`, {
+      method: "POST",
+      body: formData,
+    });
+  } catch (e) {
+    console.error(e);
   }
 }
 

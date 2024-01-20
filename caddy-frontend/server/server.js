@@ -13,7 +13,7 @@ app.get("/total_listings", (req, res) => {
 app.get("/listings/:page", (req, res) => {
   const apt_listings = [
     {
-      id_: 1,
+      _id: 1,
       listing_name: "a",
       owner_email: "b",
       address1: "c",
@@ -24,7 +24,7 @@ app.get("/listings/:page", (req, res) => {
       rooms: "1",
     },
     {
-      id_: 2,
+      _id: 2,
       listing_name: "a2",
       owner_email: "b",
       address1: "c",
@@ -35,7 +35,7 @@ app.get("/listings/:page", (req, res) => {
       rooms: "2",
     },
     {
-      id_: 3,
+      _id: 3,
       listing_name: "a3",
       owner_email: "b",
       address1: "c",
@@ -46,7 +46,7 @@ app.get("/listings/:page", (req, res) => {
       rooms: "3",
     },
     {
-      id_: 4,
+      _id: 4,
       listing_name: "a4",
       owner_email: "b",
       address1: "c",
