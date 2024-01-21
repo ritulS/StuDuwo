@@ -78,7 +78,7 @@ function BasicModal(props) {
 function DisplayListings(props) {
   const listings = props.listings.map((listing) => {
     return (
-      <div key={listing.id_} className="my-5">
+      <div key={listing._id} className="my-5">
         <Card sx={{ maxWidth: 400 }}>
           <CardMedia
             component="img"
@@ -104,7 +104,9 @@ function DisplayListings(props) {
       </div>
     );
   });
-  return <div className="flex flex-row flex-wrap p-10 space-x-5">{listings}</div>;
+  return (
+    <div className="flex flex-row flex-wrap p-10 space-x-5">{listings}</div>
+  );
 }
 
 async function getPages(url) {
@@ -140,10 +142,14 @@ export function Listings(props) {
     updatePage(value);
   };
   const setPagination = () => {
-    getPages(props.url).then((res) => updateTotalPages(res));
+    getPages(props.url).then((res) => {
+      if (res > 0) updateTotalPages(res);
+    });
   };
   const setListings = () => {
-    getListings(props.url, page).then((res) => updateListings(res));
+    getListings(props.url, page).then((res) => {
+      if (res.length > 0) updateListings(res);
+    });
   };
 
   React.useEffect(setPagination, []);
