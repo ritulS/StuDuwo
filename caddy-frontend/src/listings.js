@@ -158,7 +158,7 @@ export function Listings(props) {
   return (
     <div className="w-full max-w-full typo-bg min-h-screen">
       <DisplayCard />
-      <DisplayListings listings={listings} />
+      {listings.length > 0 && <DisplayListings listings={listings} />}
       <Stack className="fixed top-90 left-1/2 -translate-x-1/2" spacing={2}>
         <Pagination
           count={total_pages}
