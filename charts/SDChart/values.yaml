@@ -1,3 +1,48 @@
+## must be specified
+# cf:
+#   CF_API_EMAIL: ""
+#   CF_API_KEY: ""
+
+traefik:
+  additionalArguments:
+    - --entrypoints.websecure.http.tls.certresolver=cloudflare
+    - --entrypoints.websecure.http.tls.domains[0].main=site.348575.xyz
+    - --entrypoints.websecure.http.tls.domains[0].main=api.348575.xyz
+    - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+    - --certificatesresolvers.cloudflare.acme.email=kjosephsubash@gmail.com
+    - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
+    - --certificatesresolvers.cloudflare.acme.storage=/certs/acme.json
+
+  ports:
+    web:
+      redirectTo: websecure
+
+  env:
+    - name: CF_API_EMAIL
+      valueFrom:
+        secretKeyRef:
+          key: email
+          name: cloudflare-api-credentials
+    - name: CF_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: apiKey
+          name: cloudflare-api-credentials
+
+  ingressRoute:
+    dashboard:
+      enabled: false
+
+  persistence:
+    enabled: true
+    path: /certs
+    size: 128Mi
+
+## must be specified
+# hosts:
+#   site: ""
+#   api: ""
+
 frontend:
   image:
     repository: 
