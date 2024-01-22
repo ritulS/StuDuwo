@@ -17,7 +17,7 @@ spec:
       - name: frontend
         image: {{.Values.frontend.image}}
         ports:
-        - containerPort: 80
+        - containerPort: {{.Values.frontend.containerPort}}
 
 
 # Back-End Deployment
@@ -39,7 +39,7 @@ spec:
       - name: api
         image: {{.Values.api.image.repository}}
         ports:
-        - containerPort: 8080
+        - containerPort: {{.Values.api.containerPort}}
 
 # MongoDB Deployment
 apiVersion: apps/v1
@@ -66,16 +66,16 @@ spec:
         env:
         - name: MONGO_USERNAME
           valueFrom:
-            configMapKeyRef:
+            secretKeyRef:
               key: username
-              name: mongodb-config
+              name: mongo-secret
         - name: MONGO_PASSWORD
           valueFrom:
-            configMapKeyRef:
+            secretRef:
               key: password
-              name: mongodb-config
+              name: mongo-secret
         ports:
-        - containerPort: 27017
+        - containerPort: {{.Values.database.containerPort}}
 
 # PersistentVolume
 apiVersion: v1

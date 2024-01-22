@@ -8,8 +8,8 @@ spec:
     app: frontend
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: {{.Values.frontend.service.port}}
+      targetPort: {{.Values.frontend.service.targetPort}}
 
 # Back-End Service
 apiVersion: v1
@@ -21,8 +21,8 @@ spec:
     app: api
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: {{.Values.api.service.port}}
+      targetPort: {{.Values.api.service.targetPort}}
 
 
 # MongoDB Service
@@ -35,5 +35,5 @@ spec:
     app: database
   ports:
     - protocol: TCP
-      port: 27017
-      targetPort: 27017
+      port: {{.Values.database.service.port}}
+      targetPort: {{.Values.database.service.targetPort}}
