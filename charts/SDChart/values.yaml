@@ -44,17 +44,15 @@ traefik:
 #   api: ""
 
 frontend:
-  image:
-    repository: 
-    tag: latest
-  replicaCount: 2
+  image: nginx:latest
+  replicas: 2
   service:
     name: frontend-service
     port: 80
 
 api:
   image:
-    repository: 
+    repository: # should specify
     tag: latest
   replicaCount: 2
   service:
@@ -62,10 +60,14 @@ api:
     port: 8080
 
 database:
-  image:
-    repository: mongo
-    tag: latest
+  image: mongo:latest
   replicaCount: 2
+  accessModes: ReadWriteMany
+  persistentVolume:
+    storage: 1Gi
+    hostPath: /path/on/host # Change this 
+  persistentVolumeClaim:
+    storage: 1Gi
   service:
     name: database-service
     port: 27017

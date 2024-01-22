@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: frontend-deployment
 spec:
-  replicas: 1
+  replicas: {{.Values.frontend.replicas}}
   selector:
     matchLabels:
       app: frontend
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: nginx:latest
+        image: {{.Values.frontend.image}}
         ports:
         - containerPort: 80
 
@@ -26,7 +26,7 @@ kind: Deployment
 metadata:
   name: api-deployment
 spec:
-  replicas: 1
+  replicas: {{.Values.api.replicas}}
   selector:
     matchLabels:
       app: api
@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: 
+        image: {{.Values.api.image.repository}}
         ports:
         - containerPort: 8080
 
@@ -47,7 +47,7 @@ kind: StatefulSet
 metadata:
   name: database-deployment
 spec:
-  replicas: 1
+  replicas: {{.Values.database.replicas}}
   selector:
     matchLabels:
       app: database
@@ -57,12 +57,12 @@ spec:
         app: database
     spec:
       volumes:
-      - name: SD-pv-storage
+      - name: Mongo-pv-storage
         persistentVolumeClaim:
-          claimName: SD-pv-claim
+          claimName: Mongo-pv-claim
       containers:
       - name: database
-        image: mongo:latest
+        image: {{.Values.database.image}}
         env:
         - name: MONGO_USERNAME
           valueFrom:
@@ -81,23 +81,23 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: SD-pv-storage
+  name: Mongo-pv-storage
 spec:
   capacity:
-    storage: 1Gi
-  accessModes:
+    storage: {{.Values.database.persistentVolume.storage}}
+  accessModes: 
     - ReadWriteMany
   hostPath:
-    path: /path/on/host # Change this to a path on your host machine
+    path: {{.Values.database.persistentVolume.hostPath}}
 
 # PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: SD-pv-claim
+  name: Mongo-pv-claim
 spec:
   accessModes:
-    - ReadWriteMany
+    - {{.Values.database.accessModes}}
   resources:
     requests:
-      storage: 1Gi
+      storage: {{.Values.database.persistentVolumeClaim.storage}}
