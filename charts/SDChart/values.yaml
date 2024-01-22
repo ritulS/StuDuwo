@@ -9,7 +9,7 @@ frontend:
 
 api:
   image:
-    repository: your-api-image
+    repository: 
     tag: latest
   replicaCount: 2
   service:

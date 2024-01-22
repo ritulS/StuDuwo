@@ -43,7 +43,7 @@ spec:
 
 # MongoDB Deployment
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: database-deployment
 spec:
@@ -63,5 +63,41 @@ spec:
       containers:
       - name: database
         image: mongo:latest
+        env:
+        - name: MONGO_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              key: username
+              name: mongodb-config
+        - name: MONGO_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              key: password
+              name: mongodb-config
         ports:
         - containerPort: 27017
+
+# PersistentVolume
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: SD-pv-storage
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /path/on/host # Change this to a path on your host machine
+
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: SD-pv-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
