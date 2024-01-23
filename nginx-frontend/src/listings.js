@@ -49,19 +49,19 @@ function BasicModal(props) {
       <Modal
         open={open}
         onClose={handleClose}
-        aria-labelledby={"modal-modal-title" + props.listing.id_}
-        aria-describedby={"modal-modal-description" + props.listing.id_}
+        aria-labelledby={"modal-modal-title" + props.listing._id}
+        aria-describedby={"modal-modal-description" + props.listing._id}
       >
         <Box sx={boxModalStyle}>
           <Typography
-            id={"modal-modal-title" + props.listing.id_}
+            id={"modal-modal-title" + props.listing._id}
             variant="h6"
             component="h2"
           >
             {props.listing.listing_name}
           </Typography>
           <Typography
-            id={"modal-modal-description" + props.listing.id_}
+            id={"modal-modal-description" + props.listing._id}
             sx={{ mt: 2 }}
           >
             {props.listing.listing_name} (Apartment number:{" "}
