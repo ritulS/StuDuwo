@@ -7,6 +7,7 @@ import (
 
 	database "example.com/StuDuwo/db"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -29,7 +30,11 @@ type Rental_post struct {
 	Pincode      string `json:"pincode" form:"pincode"`
 	Apt_img      string `json:"apt_img" form:"apt_img"`
 	Price        string `json:"price" form:"price"`
-	Rooms        string `json:"rooms" form :"rooms"`
+	Rooms        string `json:"rooms" form:"rooms"`
+}
+
+type Listings struct {
+	Listings []Rental_post `json:"listings"`
 }
 
 func total_listings(c *fiber.Ctx) error { // Get total number of listings
@@ -48,7 +53,7 @@ func total_listings(c *fiber.Ctx) error { // Get total number of listings
 func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
 	collection := database.Get_Collection("rentals")
 
-	var rental_list []Rental_post
+	rental_list := make([]Rental_post, 0)
 
 	cur, err := collection.Find(c.Context(), bson.M{})
 	if err != nil {
@@ -61,14 +66,19 @@ func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
 		log.Println("Error making rental list: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
 	}
-	//fmt.Println(rental_list)
-	// Send only required page
+
+	if len(rental_list) == 0 {
+		return c.JSON(Listings{
+			Listings: rental_list,
+		})
+	}
+
 	spage := c.Params("*")
 	page, err := strconv.Atoi(spage)
 	fmt.Println(page)
 	var page_list []Rental_post
 	page_size := 20
-	start_idx := (page - 1) * page_size
+	start_idx := page * page_size
 	last_idx := start_idx + page_size
 
 	if last_idx >= 0 && last_idx < len(rental_list) { // if listings more than page
@@ -77,7 +87,9 @@ func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
 		page_list = rental_list[start_idx:]
 	}
 
-	return c.JSON(page_list)
+	return c.JSON(Listings{
+		Listings: page_list,
+	})
 }
 
 func post_new_rental(c *fiber.Ctx) error {
@@ -92,12 +104,18 @@ func post_new_rental(c *fiber.Ctx) error {
 	// 	Price:        "$1000",
 	// 	Rooms:        "3",
 	// }
-	var new_post Rental_post
+	new_post := new(Rental_post)
+	_, err := c.FormFile("apt_img")
+	if err != nil {
+		return err
+	}
+
 	if err := c.BodyParser(new_post); err != nil { //multipart form data
 		return err
 	}
+	log.Println(new_post)
 	collection := database.Get_Collection("rentals")
-	// new_post.ID_ = generateUniqueID()
+
 	npost, err := collection.InsertOne(c.Context(), new_post)
 	if err != nil {
 		log.Println("Error inserting new post: ", err)
@@ -114,6 +132,7 @@ func main() {
 	}
 
 	app := fiber.New()
+	app.Use(cors.New())
 
 	app.Post("/new_listing", post_new_rental)
 

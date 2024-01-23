@@ -148,7 +148,7 @@ export function Listings(props) {
   };
   const setListings = () => {
     getListings(props.url, page).then((res) => {
-      if (res.length > 0) updateListings(res);
+      if (res && res.length > 0) updateListings(res);
     });
   };
 

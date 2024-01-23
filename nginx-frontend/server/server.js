@@ -3,7 +3,8 @@ const cors = require("cors");
 const multer = require("multer");
 
 const app = express();
-const mult = multer();
+const storage = multer.memoryStorage()
+const mult = multer({ storage: storage });
 app.use(cors());
 
 app.get("/total_listings", (req, res) => {
@@ -67,7 +68,8 @@ app.get("/listings/:page", (req, res) => {
   }
 });
 
-app.post("/new_listing", mult.any(), (req, res) => {
+app.post("/new_listing", mult.single("apt_img"), (req, res) => {
+  console.log(req.file);
   console.log("received listing!\n");
   console.log(req.body);
   res.status(201).send();

@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,4 @@ COPY --from=builder /app/api .
 
 EXPOSE 3000
 
-RUN ["./api"]
-
-
-
+CMD ["./api"]

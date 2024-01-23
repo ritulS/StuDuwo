@@ -4,7 +4,7 @@ import { Header } from "./header.js";
 import { Listings } from "./listings.js";
 import { Posting } from "./posting.js";
 
-const URL = "http://localhost:5000";
+const URL = "https://api.348575.xyz";
 const root_div = document.getElementById("root");
 const root = createRoot(root_div);
 
