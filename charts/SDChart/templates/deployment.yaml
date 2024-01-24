@@ -18,8 +18,7 @@ spec:
         image: {{.Values.frontend.image}}
         ports:
         - containerPort: {{.Values.frontend.containerPort}}
-
-
+---
 # Back-End Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -40,7 +39,7 @@ spec:
         image: {{.Values.api.image.repository}}
         ports:
         - containerPort: {{.Values.api.containerPort}}
-
+---
 # MongoDB Deployment
 apiVersion: apps/v1
 kind: StatefulSet
@@ -57,44 +56,37 @@ spec:
         app: database
     spec:
       volumes:
-      - name: Mongo-pv-storage
+      - name: mongo-pv-storage
         persistentVolumeClaim:
-          claimName: Mongo-pv-claim
+          claimName: mongo-pv-claim
       containers:
       - name: database
         image: {{.Values.database.image}}
-        env:
-        - name: MONGO_USERNAME
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: mongo-secret
-        - name: MONGO_PASSWORD
-          valueFrom:
-            secretRef:
-              key: password
-              name: mongo-secret
+        volumeMounts:
+          - name: mongo-pv-storage
+            mountPath: /data/db
         ports:
         - containerPort: {{.Values.database.containerPort}}
-
+---
 # PersistentVolume
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: Mongo-pv-storage
+  name: mongo-pv-storage
 spec:
+  storageClassName: local-path
   capacity:
     storage: {{.Values.database.persistentVolume.storage}}
   accessModes: 
     - ReadWriteMany
   hostPath:
     path: {{.Values.database.persistentVolume.hostPath}}
-
+---
 # PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: Mongo-pv-claim
+  name: mongo-pv-claim
 spec:
   accessModes:
     - {{.Values.database.accessModes}}

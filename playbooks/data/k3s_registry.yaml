@@ -1,0 +1,4 @@
+mirrors:
+  {{ ansible_host_name.msg }}:30000:
+    endpoint:
+    - http://{{ ansible_host_name.msg }}:30000

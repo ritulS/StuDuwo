@@ -1,0 +1,28 @@
+- name: Kubernetes dashboard setup
+  hosts: master
+  tasks:
+    - name: Add helm repo
+      kubernetes.core.helm_repository:
+        name: kubernetes-dashboard
+        repo_url: https://kubernetes.github.io/dashboard/
+
+    - name: Copy cluster role binding
+      ansible.builtin.copy:
+        src: data/cluster-role-binding.yaml
+        dest: $HOME/cluster-role-binding.yaml
+        mode: 'g+w'
+
+    - name: Install dashboard
+      kubernetes.core.helm:
+        name: kubernetes-dashboard
+        release_namespace: default
+        chart_ref: kubernetes-dashboard/kubernetes-dashboard
+        set_values:
+          - value: metricsScraper.enabled=true
+            value_type: string
+
+    - name: Create cluster role binding
+      kubernetes.core.k8s:
+        state: present
+        apply: true
+        src: cluster-role-binding.yaml
