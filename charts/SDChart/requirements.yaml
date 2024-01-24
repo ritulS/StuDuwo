@@ -1,4 +1,0 @@
-dependencies:
-  - name: traefik
-    repository: https://helm.traefik.io/traefik
-    version: 26.0.0

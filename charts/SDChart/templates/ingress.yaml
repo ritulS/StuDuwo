@@ -17,6 +17,11 @@ spec:
     services:
       - name: api-service
         port: 8080
+  - match: Host(`{{ .Values.hosts.content }}`)
+    kind: Rule
+    services:
+      - name: seaweedfs-s3
+        port: 8333
   tls:
     certResolver: cloudflare
     domains:
