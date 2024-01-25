@@ -1,39 +1,52 @@
 ## must be specified
 # cf:
-#   CF_API_EMAIL: ""
-#   CF_API_KEY: ""
-
-
+#   CF_API_EMAIL:
+#   CF_API_KEY:
 
 traefik:
   additionalArguments:
+    - --accesslog
+    - --providers.kubernetescrd
+    - --entrypoints.websecure.Address=:443
     - --entrypoints.websecure.http.tls.certresolver=cloudflare
     - --entrypoints.websecure.http.tls.domains[0].main=site.348575.xyz
     - --entrypoints.websecure.http.tls.domains[0].main=api.348575.xyz
     - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
     - --certificatesresolvers.cloudflare.acme.email=kjosephsubash@gmail.com
-    - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
+    - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53
     - --certificatesresolvers.cloudflare.acme.storage=/certs/acme.json
+
+  logs:
+    general:
+      level: ERROR
 
   ports:
     web:
-      redirectTo: websecure
-
-  env:
-    - name: CF_API_EMAIL
-      valueFrom:
-        secretKeyRef:
-          key: email
-          name: cloudflare-api-credentials
-    - name: CF_API_KEY
-      valueFrom:
-        secretKeyRef:
-          key: apiKey
-          name: cloudflare-api-credentials
+      redirectTo:
+        port: websecure
+    websecure:
+      port: 443
 
   ingressRoute:
     dashboard:
-      enabled: false
+      enabled: true
+
+  env:
+  - name: CF_API_EMAIL
+    valueFrom:
+      secretKeyRef:
+        key: email
+        name: cloudflare-api-credentials
+  - name: CF_DNS_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: apiKey
+        name: cloudflare-api-credentials
+  - name: CF_ZONE_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: apiKey
+        name: cloudflare-api-credentials
 
   persistence:
     enabled: true
@@ -41,12 +54,13 @@ traefik:
     size: 128Mi
 
 ## must be specified
-# hosts:
-#   site: ""
-#   api: ""
+hosts:
+  site: site.348575.xyz
+  api: api.348575.xyz
+  content: content.348575.xyz
 
 frontend:
-  image: nginx:latest
+  image: 192.168.121.237:30000/studuwo/frontend
   replicas: 2
   containerPort: 80
   service:
@@ -56,28 +70,44 @@ frontend:
 
 api:
   image:
-    repository: # should specify
+    repository: 192.168.121.237:30000/studuwo/api # should specify
     tag: latest
   replicas: 2
   containerPort: 8080
   service:
     name: api-service
     port: 8080
-    targetPort: 8080
+    targetPort: 5000
 
 database:
-  image: mongo:latest
-  replicas: 2
+  image: mongo
+  replicas: 1
   containerPort: 27017
   accessModes: ReadWriteMany
   persistentVolume:
     storage: 1Gi
-    hostPath: /path/on/host # Change this 
+    hostPath: /mongo-data # Change this 
   persistentVolumeClaim:
     storage: 1Gi
   service:
     name: database-service
     port: 27017
     targetPort: 27017
-  # MONGO_USERNAME: tbf
-  # MONGO_PASSWORD: tbf
+  MONGO_USERNAME: bW9uZ28K
+  MONGO_PASSWORD: dGVzdAo=
+
+seaweedfs:
+  filer:
+    s3:
+      enabled: true
+      domainName: 348575.xyz
+      skipAuthSecretCreation: true
+      existingConfigSecret: seaweed-s3-secret
+
+seaweed:
+  admin:
+    accessKey: snu8yoP6QAlY0ne4
+    secretKey: PNzBcmeLNEdR0oviwm04NQAicOrDH1Km
+  open:
+    accessKey: SCigFee6c5lbi04A
+    secretKey: kgFhbT38R8WUYVtiFQ1OiSVOrYr3NKku
