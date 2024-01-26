@@ -37,10 +37,37 @@ spec:
       containers:
       - name: api
         image: {{.Values.api.image.repository}}
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: postgres-secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: postgres-secret
+        - name: URI
+          value: {{.Values.database.service.name}}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: accessKey
+              name: seaweed-api-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretKey
+              name: seaweed-api-secret
+        - name: AWS_REGION
+          value: us-east-1
+        - name: SEAWEEDFS_S3
+          value: seaweedfs-s3
         ports:
         - containerPort: {{.Values.api.containerPort}}
 ---
-# MongoDB Deployment
+# postgres Deployment
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -56,15 +83,26 @@ spec:
         app: database
     spec:
       volumes:
-      - name: mongo-pv-storage
+      - name: postgres-pv-storage
         persistentVolumeClaim:
-          claimName: mongo-pv-claim
+          claimName: postgres-pv-claim
       containers:
       - name: database
         image: {{.Values.database.image}}
         volumeMounts:
-          - name: mongo-pv-storage
+          - name: postgres-pv-storage
             mountPath: /data/db
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: password
         ports:
         - containerPort: {{.Values.database.containerPort}}
 ---
@@ -72,7 +110,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mongo-pv-storage
+  name: postgres-pv-storage
 spec:
   storageClassName: local-path
   capacity:
@@ -86,7 +124,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mongo-pv-claim
+  name: postgres-pv-claim
 spec:
   accessModes:
     - {{.Values.database.accessModes}}

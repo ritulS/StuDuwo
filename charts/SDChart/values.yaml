@@ -80,34 +80,33 @@ api:
     targetPort: 5000
 
 database:
-  image: mongo
+  image: postgres
   replicas: 1
-  containerPort: 27017
+  containerPort: 5432
   accessModes: ReadWriteMany
   persistentVolume:
     storage: 1Gi
-    hostPath: /mongo-data # Change this 
+    hostPath: /postgres-data # Change this 
   persistentVolumeClaim:
     storage: 1Gi
   service:
     name: database-service
-    port: 27017
-    targetPort: 27017
-  MONGO_USERNAME: bW9uZ28K
-  MONGO_PASSWORD: dGVzdAo=
+    port: 5432
+    targetPort: 5432
+  # POSTGRES_USERNAME:
+  # POSTGRES_PASSWORD:
 
 seaweedfs:
   filer:
     s3:
       enabled: true
-      domainName: 348575.xyz
       skipAuthSecretCreation: true
       existingConfigSecret: seaweed-s3-secret
 
-seaweed:
-  admin:
-    accessKey: snu8yoP6QAlY0ne4
-    secretKey: PNzBcmeLNEdR0oviwm04NQAicOrDH1Km
-  open:
-    accessKey: SCigFee6c5lbi04A
-    secretKey: kgFhbT38R8WUYVtiFQ1OiSVOrYr3NKku
+# seaweed:
+#   admin:
+#     accessKey:
+#     secretKey:
+#   open:
+#     accessKey:
+#     secretKey:

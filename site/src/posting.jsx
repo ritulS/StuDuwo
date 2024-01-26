@@ -10,6 +10,7 @@ async function formSubmit(e, url) {
       method: "POST",
       body: formData,
     });
+    window.location.reload();
   } catch (e) {
     console.error(e);
   }
@@ -148,15 +149,15 @@ export function Posting(props) {
             <div className="mb-4">
               <label
                 className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="apt_img"
+                htmlFor="img_id"
               >
                 Listing img:
               </label>
               <input
                 className="shadow appearance-none border rounded w-full py-2"
                 type="file"
-                id="apt_img"
-                name="apt_img"
+                id="img_id"
+                name="img_id"
                 required={true}
                 onChange={updateImagePreview}
               />

@@ -5,25 +5,33 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "parcel src/index.html",
-    "build": "rm -rf dist .parcel-cache && parcel build src/index.html"
+    "serve": "vite",
+    "build": "vite build"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "buffer": "^6.0.3",
+    "bun-types": "latest",
     "express": "^4.18.2",
     "multer": "^1.4.5-lts.1",
-    "parcel": "^2.11.0",
     "postcss": "^8.4.33",
     "process": "^0.11.10",
     "tailwindcss": "^3.4.1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.499.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.15.3",
     "cors": "^2.8.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "vite": "^5.0.12"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }

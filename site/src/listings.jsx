@@ -10,6 +10,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import rconfidence from "./rent-with-confidence.jpg";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const boxModalStyle = {
   position: "absolute",
@@ -75,16 +76,20 @@ function BasicModal(props) {
   );
 }
 
+function get_image() {
+  listing.img_id
+}
+
 function DisplayListings(props) {
   const listings = props.listings.map((listing) => {
     return (
-      <div key={listing._id} className="my-5">
+      <div key={listing.id} className="my-5">
         <Card sx={{ maxWidth: 400 }}>
           <CardMedia
             component="img"
             alt="listing image"
             height="140"
-            image={rconfidence}
+            image={listing.img}
           />
           <CardContent>
             <Typography gutterBottom variant="h5" component="div">
@@ -114,19 +119,41 @@ async function getPages(url) {
   try {
     const response = await fetch(`${url}/total_listings`);
     const tot_listings = (await response.json())["total_listings"];
-    pages = tot_listings / 10 + (tot_listings % 10 != 0 ? 1 : 0);
+    pages = Math.ceil(tot_listings / 10);
   } catch (e) {
     console.error(e);
   }
   return pages;
 }
 
+const s3client = new S3Client({
+  endpoint: `https://content.348575.xyz`,
+  region: `us-east-1`, // does not matter
+  forcePathStyle: true,
+  // public access credentials
+  credentials: {
+    accessKeyId: `SCigFee6c5lbi04A`,
+    secretAccessKey: `kgFhbT38R8WUYVtiFQ1OiSVOrYr3NKku`,
+  }
+});
+
+async function bufferToBase64(buffer) {
+  return new Promise(r => {
+    const reader = new FileReader()
+    reader.onload = () => r(reader.result)
+    reader.readAsDataURL(new Blob([buffer]))
+  });
+}
+
 async function getListings(url, page) {
   let listings = undefined;
-  //console.log(page)
   try {
     const response = await fetch(`${url}/listings/${page - 1}`);
     listings = (await response.json())["listings"];
+    for (let v of listings) {
+      const res = await s3client.send(new GetObjectCommand({ Bucket: "images", Key: v.img_id }))
+      v.img = await bufferToBase64(await res.Body.transformToByteArray())
+    }
   } catch (e) {
     console.error(e);
   }

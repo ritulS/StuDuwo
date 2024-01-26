@@ -1,8 +1,8 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { Header } from "./header.js";
-import { Listings } from "./listings.js";
-import { Posting } from "./posting.js";
+import { Header } from "./header.jsx";
+import { Listings } from "./listings.jsx";
+import { Posting } from "./posting.jsx";
 
 const URL = "https://api.348575.xyz";
 const root_div = document.getElementById("root");

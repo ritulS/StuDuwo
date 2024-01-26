@@ -10,8 +10,8 @@ export function Header(props) {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="primary">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            FakeRent.com
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => window.location.reload()}>
+            studuwo.com
           </Typography>
           <Box>
             <Button color="inherit" onClick={() => props.updateListing(true)}>
