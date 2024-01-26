@@ -1,77 +1,20 @@
 ## must be specified
-# cf:
-#   CF_API_EMAIL:
-#   CF_API_KEY:
-
-traefik:
-  additionalArguments:
-    - --accesslog
-    - --providers.kubernetescrd
-    - --entrypoints.websecure.Address=:443
-    - --entrypoints.websecure.http.tls.certresolver=cloudflare
-    - --entrypoints.websecure.http.tls.domains[0].main=site.348575.xyz
-    - --entrypoints.websecure.http.tls.domains[0].main=api.348575.xyz
-    - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
-    - --certificatesresolvers.cloudflare.acme.email=kjosephsubash@gmail.com
-    - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53
-    - --certificatesresolvers.cloudflare.acme.storage=/certs/acme.json
-
-  logs:
-    general:
-      level: ERROR
-
-  ports:
-    web:
-      redirectTo:
-        port: websecure
-    websecure:
-      port: 443
-
-  ingressRoute:
-    dashboard:
-      enabled: true
-
-  env:
-  - name: CF_API_EMAIL
-    valueFrom:
-      secretKeyRef:
-        key: email
-        name: cloudflare-api-credentials
-  - name: CF_DNS_API_TOKEN
-    valueFrom:
-      secretKeyRef:
-        key: apiKey
-        name: cloudflare-api-credentials
-  - name: CF_ZONE_API_TOKEN
-    valueFrom:
-      secretKeyRef:
-        key: apiKey
-        name: cloudflare-api-credentials
-
-  persistence:
-    enabled: true
-    path: /certs
-    size: 128Mi
-
-## must be specified
 hosts:
   site: site.348575.xyz
   api: api.348575.xyz
   content: content.348575.xyz
 
-frontend:
-  image: 192.168.121.237:30000/studuwo/frontend
+site:
+  image: registry.348575.xyz/studuwo/site:1.0.0
   replicas: 2
   containerPort: 80
   service:
-    name: frontend-service
+    name: site-service
     port: 80
     targetPort: 80
 
 api:
-  image:
-    repository: 192.168.121.237:30000/studuwo/api # should specify
-    tag: latest
+  image: registry.348575.xyz/studuwo/api:1.0.0
   replicas: 2
   containerPort: 8080
   service:

@@ -10,7 +10,7 @@ spec:
   - match: Host(`{{ .Values.hosts.site }}`)
     kind: Rule
     services:
-      - name: frontend-service
+      - name: site-service
         port: 80
   - match: Host(`{{ .Values.hosts.api }}`)
     kind: Rule

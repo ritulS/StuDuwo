@@ -62,49 +62,17 @@
         dest: kube-config
         flat: true
 
-    - name: Copy internal registry yaml
-      ansible.builtin.copy:
-        src: data/internal-registry.yaml
-        dest: internal-registry.yaml
-        mode: 'g+w'
-
-    - name: Create internal registry
-      kubernetes.core.k8s:
-        state: present
-        apply: true
-        namespace: default
-        src: internal-registry.yaml
-
     - name: Copy admin user service account setup
       ansible.builtin.copy:
         src: data/admin-user.yaml
         dest: $HOME/admin-user.yaml
         mode: 'g+w'
 
-    - name: Create admin user 
+    - name: Create admin user
       kubernetes.core.k8s:
         state: present
         apply: true
         src: admin-user.yaml
-
-    - name: Install docker
-      become: true
-      ansible.builtin.shell: curl -fsSL https://get.docker.com/ | sh
-
-    - name: Append insecure registry
-      become: true
-      ansible.builtin.shell: rm -f /etc/docker/daemon.json && echo "{ \"insecure-registries\":[\"http://{{ ansible_ssh_host }}:30000\"] }" >> /etc/docker/daemon.json
-
-    - name: Restart docker
-      become: true
-      ansible.builtin.systemd:
-        state: restarted
-        name: docker
-
-    - name: get ansible_host as var
-      ansible.builtin.debug:
-        msg: "{{ ansible_ssh_host }}"
-      register: ansible_host_name
 
     - name: Copy k3s/registries.yaml
       become: true

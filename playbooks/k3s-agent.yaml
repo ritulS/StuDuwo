@@ -12,9 +12,9 @@
         state: directory
         mode: '0755'
 
-    - name: Copy k3s_registry.yaml
+    - name: Copy k3s/registries.yaml
       become: true
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: data/k3s_registry.yaml
         dest: /etc/rancher/k3s/registries.yaml
         mode: 'g+w'

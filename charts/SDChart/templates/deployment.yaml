@@ -2,22 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment
+  name: site-deployment
 spec:
-  replicas: {{.Values.frontend.replicas}}
+  replicas: {{.Values.site.replicas}}
   selector:
     matchLabels:
-      app: frontend
+      app: site
   template:
     metadata:
       labels:
-        app: frontend
+        app: site
     spec:
       containers:
-      - name: frontend
-        image: {{.Values.frontend.image}}
+      - name: site
+        image: {{.Values.site.image}}
         ports:
-        - containerPort: {{.Values.frontend.containerPort}}
+        - containerPort: {{.Values.site.containerPort}}
 ---
 # Back-End Deployment
 apiVersion: apps/v1
@@ -34,9 +34,18 @@ spec:
       labels:
         app: api
     spec:
+      serviceAccountName: wait-for-deps
+      initContainers:
+      - name: wait-for-deps
+        image: bitnami/kubectl
+        args:
+          - wait
+          - job/wait-for-backend-deps
+          - --for=condition=complete
+          - --timeout=600s
       containers:
       - name: api
-        image: {{.Values.api.image.repository}}
+        image: {{.Values.api.image}}
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -113,6 +122,7 @@ metadata:
   name: postgres-pv-storage
 spec:
   storageClassName: local-path
+  persistentVolumeReclaimPolicy: Retain
   capacity:
     storage: {{.Values.database.persistentVolume.storage}}
   accessModes: 

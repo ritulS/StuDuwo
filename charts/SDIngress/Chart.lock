@@ -1,0 +1,9 @@
+dependencies:
+- name: docker-registry
+  repository: https://helm.twun.io
+  version: 2.2.2
+- name: traefik
+  repository: https://helm.traefik.io/traefik
+  version: 26.0.0
+digest: sha256:a3cedd1c616f5e30e11f42ceb25252e4c8c5d3fac196375683ceead00263d296
+generated: "2024-01-26T17:27:51.215988818+01:00"

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-credentials
+stringData:
+  email: {{ .Values.cf.CF_API_EMAIL }}
+  apiKey: {{ .Values.cf.CF_API_KEY }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: registry
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`{{ .Values.hosts.registry }}`)
+    kind: Rule
+    services:
+      - name: ingress-docker-registry
+        port: 5000
+  tls:
+    certResolver: cloudflare
+    domains:
+      - main: "registry.348575.xyz"

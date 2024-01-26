@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wait-for-deps
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wait-for-deps
+  namespace: default
+rules:
+  - apiGroups:
+      - "apps"
+      - "batch"
+    resources:
+      - statefulsets
+      - pods
+      - deployments
+      - jobs
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wait-for-deps
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: wait-for-deps
+subjects:
+- kind: ServiceAccount
+  name: wait-for-deps
+  namespace: default
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-backend-deps
+spec:
+  template:
+    spec:
+      serviceAccountName: wait-for-deps
+      containers:
+      - name: wait-for-seaweed-master
+        image: bitnami/kubectl
+        args:
+          - rollout
+          - status
+          - --watch
+          - --timeout=600s
+          - statefulset/seaweedfs-master
+      - name: wait-for-seaweed-volume
+        image: bitnami/kubectl
+        args:
+          - rollout
+          - status
+          - --watch
+          - --timeout=600s
+          - statefulset/seaweedfs-volume
+      - name: wait-for-seaweed-filer
+        image: bitnami/kubectl
+        args:
+          - rollout
+          - status
+          - --watch
+          - --timeout=600s
+          - statefulset/seaweedfs-filer
+      - name: wait-for-db
+        image: bitnami/kubectl
+        args:
+          - rollout
+          - status
+          - --watch
+          - --timeout=600s
+          - statefulset/database-deployment
+      restartPolicy: Never

@@ -32,7 +32,6 @@ Vagrant.configure("2") do |config|
   end
 
   (1..NUM_WORKER_NODES).each do |i|
-
     config.vm.define "node0#{i}" do |node|
       node.vm.hostname = "worker-node0#{i}"
       node.vm.provider "libvirt" do |vm|

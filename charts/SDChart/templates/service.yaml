@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
+  name: site-service
 spec:
   selector:
-    app: frontend
+    app: site
   ports:
     - protocol: TCP
-      port: {{.Values.frontend.service.port}}
-      targetPort: {{.Values.frontend.service.targetPort}}
+      port: {{.Values.site.service.port}}
+      targetPort: {{.Values.site.service.targetPort}}
 ---
 # Back-End Service
 apiVersion: v1

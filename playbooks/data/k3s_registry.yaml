@@ -1,4 +1,9 @@
 mirrors:
-  {{ ansible_host_name.msg }}:30000:
+  registry.348575.xyz:
     endpoint:
-    - http://{{ ansible_host_name.msg }}:30000
+    - https://registry.348575.xyz
+configs:
+  "registry.348575.xyz":
+    auth:
+      username: studuwo
+      password: {{ registry_password }}
