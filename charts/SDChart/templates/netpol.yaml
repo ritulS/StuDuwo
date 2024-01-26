@@ -1,0 +1,5 @@
+# api to db only communication
+
+# only seaweed proxy can talk to seaweed  
+
+# front-end can only to proxy & ingress
