@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/url"
@@ -9,10 +8,6 @@ import (
 	"runtime/debug"
 	"strconv"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -23,8 +18,6 @@ import (
 )
 
 var db *gorm.DB
-var s3_client *s3.Client
-var bucket = "images"
 
 type Rental struct {
 	ID       string  `json:"id,omitempty" form:"id,omitempty" gorm:"primaryKey;type:varchar(64)"`
@@ -40,7 +33,6 @@ type Rental struct {
 
 func main() {
 	db = Connect()
-	s3_client = ConnectS3()
 
 	app := fiber.New()
 
@@ -68,7 +60,6 @@ func main() {
 	app.Get("/listings/:page", get_all_listings)
 	app.Get("/total_listings", total_listings)
 	app.Listen(":5000")
-
 }
 
 func Connect() *gorm.DB {
@@ -114,55 +105,12 @@ func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
 		return c.Status(fiber.StatusInternalServerError).JSON(res.Error)
 	}
 
-	// cur, err := collection.Find(c.Context(), bson.M{})
-	// if err != nil {
-	// 	log.Println("Error finding documents: ", err)
-	// 	return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
-	// }
-	// defer cur.Close(c.Context())
-
-	// if err := cur.All(c.Context(), &rental_list); err != nil {
-	// 	log.Println("Error making rental list: ", err)
-	// 	return c.Status(fiber.StatusInternalServerError).SendString("Error getting all rentals")
-	// }
-
-	// if len(rental_list) == 0 {
-	// 	return c.JSON(Listings{
-	// 		Listings: rental_list,
-	// 	})
-	// }
-
-	// spage := c.Params("*")
-	// page, err := strconv.Atoi(spage)
-	// fmt.Println(page)
-	// var page_list []Rental
-	// page_size := 20
-	// start_idx := page * page_size
-	// last_idx := start_idx + page_size
-
-	// if last_idx >= 0 && last_idx < len(rental_list) { // if listings more than page
-	// 	page_list = rental_list[start_idx:last_idx]
-	// } else {
-	// 	page_list = rental_list[start_idx:]
-	// }
-
 	return c.JSON(Listings{
 		Listings: rental_list,
 	})
 }
 
 func post_new_rental(c *fiber.Ctx) error {
-	// sample_post := Rental{
-	//	ID_:          "1"
-	// 	Listing_name: "Uilenstede",
-	// 	Owner_email:  "owner@example.com",
-	// 	Address1:     "123 Main St",
-	// 	Address2:     "Apt 456",
-	// 	Pincode:      "12345",
-	// 	Apt_img:      "apt_image.jpg",
-	// 	Price:        "$1000",
-	// 	Rooms:        "3",
-	// }
 	new_post := new(Rental)
 	img, err := c.FormFile("img_id")
 	if err != nil {
@@ -185,53 +133,20 @@ func post_new_rental(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(res.Error)
 	}
 
-	_, err = s3_client.PutObject(c.Context(), &s3.PutObjectInput{
-		Bucket: &bucket,
-		Key:    &new_post.ImgId,
-		Body:   img_file,
-	})
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(err)
+	u, _ := url.Parse("http://seaweed-proxy-service/")
+	u = u.JoinPath(new_post.ImgId)
+	log.Println(u.String())
+	agent := fiber.Post(u.String())
+	agent.BodyStream(img_file, int(img.Size))
+
+	statusCode, body, err_agent := agent.Bytes()
+	if len(err_agent) > 0 {
+		return c.Status(fiber.StatusInternalServerError).JSON(err_agent)
+	}
+
+	if statusCode != 200 {
+		return c.Status(fiber.StatusInternalServerError).JSON(body)
 	}
 
 	return c.JSON(new_post)
-}
-
-type resolverV2 struct{}
-
-func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
-	smithyendpoints.Endpoint, error,
-) {
-	u, err := url.Parse(fmt.Sprintf("http://%s:8333/", os.Getenv("SEAWEEDFS_S3")))
-	if err != nil {
-		return smithyendpoints.Endpoint{}, err
-	}
-	return smithyendpoints.Endpoint{
-		URI: *u,
-	}, nil
-}
-
-func ConnectS3() *s3.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatalf("failed to load configuration, %v", err)
-	}
-
-	uri := fmt.Sprintf("http://%s:8333/", os.Getenv("SEAWEEDFS_S3"))
-	s3_client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = &uri
-		o.UsePathStyle = true
-	})
-
-	_, err = s3_client.CreateBucket(context.TODO(), &s3.CreateBucketInput{
-		Bucket: &bucket,
-	})
-
-	out, err := s3_client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
-	for i := range out.Buckets {
-		log.Println(out.Buckets[i].Name)
-	}
-
-	log.Println(err)
-	return s3_client
 }

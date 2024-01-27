@@ -39,10 +39,11 @@ spec:
       - name: wait-for-deps
         image: bitnami/kubectl
         args:
-          - wait
-          - job/wait-for-backend-deps
-          - --for=condition=complete
+          - rollout
+          - status
+          - --watch
           - --timeout=600s
+          - statefulset/database-deployment
       containers:
       - name: api
         image: {{.Values.api.image}}
@@ -59,6 +60,37 @@ spec:
               name: postgres-secret
         - name: URI
           value: {{.Values.database.service.name}}
+        ports:
+        - containerPort: {{.Values.api.containerPort}}
+---
+# Seaweed proxy deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seaweed-proxy-deployment
+spec:
+  replicas: {{.Values.sp.replicas}}
+  selector:
+    matchLabels:
+      app: seaweed-proxy
+  template:
+    metadata:
+      labels:
+        app: seaweed-proxy
+    spec:
+      serviceAccountName: wait-for-deps
+      initContainers:
+      - name: wait-for-deps
+        image: bitnami/kubectl
+        args:
+          - wait
+          - job/wait-for-backend-deps
+          - --for=condition=complete
+          - --timeout=600s
+      containers:
+      - name: seaweed-proxy
+        image: {{.Values.sp.image}}
+        env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
@@ -74,7 +106,7 @@ spec:
         - name: SEAWEEDFS_S3
           value: seaweedfs-s3
         ports:
-        - containerPort: {{.Values.api.containerPort}}
+        - containerPort: {{.Values.sp.containerPort}}
 ---
 # postgres Deployment
 apiVersion: apps/v1

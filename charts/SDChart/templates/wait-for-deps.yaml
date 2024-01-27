@@ -68,12 +68,4 @@ spec:
           - --watch
           - --timeout=600s
           - statefulset/seaweedfs-filer
-      - name: wait-for-db
-        image: bitnami/kubectl
-        args:
-          - rollout
-          - status
-          - --watch
-          - --timeout=600s
-          - statefulset/database-deployment
       restartPolicy: Never

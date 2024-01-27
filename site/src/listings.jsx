@@ -10,7 +10,6 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import rconfidence from "./rent-with-confidence.jpg";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const boxModalStyle = {
   position: "absolute",
@@ -126,17 +125,6 @@ async function getPages(url) {
   return pages;
 }
 
-const s3client = new S3Client({
-  endpoint: `https://content.348575.xyz`,
-  region: `us-east-1`, // does not matter
-  forcePathStyle: true,
-  // public access credentials
-  credentials: {
-    accessKeyId: `SCigFee6c5lbi04A`,
-    secretAccessKey: `kgFhbT38R8WUYVtiFQ1OiSVOrYr3NKku`,
-  }
-});
-
 async function bufferToBase64(buffer) {
   return new Promise(r => {
     const reader = new FileReader()
@@ -151,8 +139,8 @@ async function getListings(url, page) {
     const response = await fetch(`${url}/listings/${page - 1}`);
     listings = (await response.json())["listings"];
     for (let v of listings) {
-      const res = await s3client.send(new GetObjectCommand({ Bucket: "images", Key: v.img_id }))
-      v.img = await bufferToBase64(await res.Body.transformToByteArray())
+      const res = await fetch(`https://content.348575.xyz/${v.img_id}`);
+      v.img = await bufferToBase64(await res.arrayBuffer())
     }
   } catch (e) {
     console.error(e);

@@ -20,8 +20,8 @@ spec:
   - match: Host(`{{ .Values.hosts.content }}`)
     kind: Rule
     services:
-      - name: seaweedfs-s3
-        port: 8333
+      - name: seaweed-proxy-service
+        port: 80
   tls:
     certResolver: cloudflare
     domains:
