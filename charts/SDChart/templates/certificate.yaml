@@ -2,11 +2,15 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: cert-tls
+  name: my-selfsigned-ca
 spec:
-  secretName: cert-tls-secret
+  isCA: true
+  commonName: my-selfsigned-ca
+  secretName: root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
   issuerRef:
+    name: selfsigned-issuer
     kind: ClusterIssuer
-    name: letsencrypt-prod
-  dnsNames:
-  - www.example.com # replace with our dns
+    group: cert-manager.io

@@ -33,4 +33,4 @@ spec:
           app: # ?????????
 
 
-# front-end can only to proxy & ingress
+# api can only talk to proxy
