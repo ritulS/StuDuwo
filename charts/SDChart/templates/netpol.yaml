@@ -1,5 +1,36 @@
 # api to db only communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-db-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: api   
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: database
 
 # only seaweed proxy can talk to seaweed  
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: swproxy-sw-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: seaweed-proxy   
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: # ?????????
+
 
 # front-end can only to proxy & ingress
