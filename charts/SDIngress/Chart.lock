@@ -5,5 +5,8 @@ dependencies:
 - name: traefik
   repository: https://helm.traefik.io/traefik
   version: 26.0.0
-digest: sha256:a3cedd1c616f5e30e11f42ceb25252e4c8c5d3fac196375683ceead00263d296
-generated: "2024-01-26T17:27:51.215988818+01:00"
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.13.3
+digest: sha256:55288e916c2627ea049f6660598641d45464e9c2e9a6cfb45c0f93f24e250503
+generated: "2024-01-28T20:29:41.064413955+01:00"

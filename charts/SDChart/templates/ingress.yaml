@@ -11,17 +11,12 @@ spec:
     kind: Rule
     services:
       - name: site-service
-        port: 80
+        port: {{.Values.site.service.port}}
   - match: Host(`{{ .Values.hosts.api }}`)
     kind: Rule
     services:
       - name: api-service
-        port: 8080
-  - match: Host(`{{ .Values.hosts.content }}`)
-    kind: Rule
-    services:
-      - name: seaweed-proxy-service
-        port: 80
+        port: {{.Values.api.service.port}}
   tls:
     certResolver: cloudflare
     domains:

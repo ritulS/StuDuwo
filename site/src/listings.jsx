@@ -139,7 +139,7 @@ async function getListings(url, page) {
     const response = await fetch(`${url}/listings/${page - 1}`);
     listings = (await response.json())["listings"];
     for (let v of listings) {
-      const res = await fetch(`https://content.348575.xyz/${v.img_id}`);
+      const res = await fetch(`${url}/image/${v.img_id}`);
       v.img = await bufferToBase64(await res.arrayBuffer())
     }
   } catch (e) {

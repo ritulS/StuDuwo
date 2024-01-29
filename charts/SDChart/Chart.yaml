@@ -24,12 +24,6 @@ version: 0.1.2
 appVersion: "1.16.0"
 
 dependencies:
-- name: seaweedfs
-  repository: https://seaweedfs.github.io/seaweedfs/helm
-  version: 3.61.0
-# dependencies:
-#   - name: cert-manager
-#     version: v1.13.3
-#     repository: https://charts.jetstack.io
-#     alias: cert-manager
-#     condition: cert-manager.enabled
+  - name: seaweedfs
+    repository: https://seaweedfs.github.io/seaweedfs/helm
+    version: 3.61.0

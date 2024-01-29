@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gen-cert
+data:
+  gen.sh: |
+    #!/bin/bash
+    set -Eeuo pipefail
+    cat /config/config.yaml | envsubst | kubectl apply -f -
+    kubectl get secret $POD_NAME -o "jsonpath={.data['ca\.crt']}" | base64 -d > /gen-certs/ca.crt
+    kubectl get secret $POD_NAME -o "jsonpath={.data['tls\.crt']}" | base64 -d > /gen-certs/tls.crt
+    kubectl get secret $POD_NAME -o "jsonpath={.data['tls\.key']}" | base64 -d > /gen-certs/tls.key
+    cat /gen-certs/tls.crt /gen-certs/ca.crt >> /gen-certs/bundle.crt
+  config.yaml: |
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: $POD_NAME
+      namespace: default
+    spec:
+      secretName: $POD_NAME
+      isCA: false
+      usages:
+        - server auth
+        - client auth
+      dnsNames:
+      - "$SVC_NAME"
+      - "$SVC_NAME.default.svc.cluster.local"
+      ipAddresses:
+      - $POD_IP
+      issuerRef:
+        name: internal-ca-issuer

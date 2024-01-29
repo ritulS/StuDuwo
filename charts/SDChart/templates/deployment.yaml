@@ -44,24 +44,71 @@ spec:
           - --watch
           - --timeout=600s
           - statefulset/database-deployment
-      containers:
-      - name: api
-        image: {{.Values.api.image}}
+      - name: gen-cert
+        image: registry.348575.xyz/studuwo/kubectl-envsubst:1.0.0 
+        command:
+          - /config/gen.sh
         env:
-        - name: POSTGRES_USER
+        - name: POD_IP
           valueFrom:
-            secretKeyRef:
-              key: username
-              name: postgres-secret
-        - name: POSTGRES_PASSWORD
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
           valueFrom:
-            secretKeyRef:
-              key: password
-              name: postgres-secret
-        - name: URI
-          value: {{.Values.database.service.name}}
-        ports:
-        - containerPort: {{.Values.api.containerPort}}
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SVC_NAME
+          value: {{.Values.api.service.name}}
+        volumeMounts:
+          - mountPath: /config
+            name: gen-cert
+          - mountPath: /gen-certs
+            name: certs
+      containers:
+        - name: api
+          image: {{.Values.api.image}}
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: postgres-secret
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: postgres-secret
+          - name: URI
+            value: {{.Values.database.service.name}}
+          ports:
+          - containerPort: {{.Values.api.containerPort}}
+        - name: api-sidecar
+          image: nginx
+          volumeMounts:
+            - mountPath: /gen-certs
+              name: certs
+            - mountPath: /etc/nginx/conf.d/
+              name: nginx-conf
+          ports:
+          - containerPort: {{.Values.api.service.targetPort}}
+      volumes:
+        - name: certs
+          emptyDir: {}
+        - name: gen-cert
+          configMap:
+            name: gen-cert
+            items:
+              - key: gen.sh
+                path: gen.sh
+                mode: 0777
+              - key: config.yaml
+                path: config.yaml
+        - name: nginx-conf
+          configMap:
+            name: nginx-sidecar
+            items:
+              - key: default.conf
+                path: default.conf
 ---
 # Seaweed proxy deployment
 apiVersion: apps/v1

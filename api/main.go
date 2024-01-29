@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/url"
@@ -59,6 +60,7 @@ func main() {
 	app.Post("/new_listing", post_new_rental)
 	app.Get("/listings/:page", get_all_listings)
 	app.Get("/total_listings", total_listings)
+	app.Get("/image/:img_id", get_image)
 	app.Listen(":5000")
 }
 
@@ -135,7 +137,6 @@ func post_new_rental(c *fiber.Ctx) error {
 
 	u, _ := url.Parse("http://seaweed-proxy-service/")
 	u = u.JoinPath(new_post.ImgId)
-	log.Println(u.String())
 	agent := fiber.Post(u.String())
 	agent.BodyStream(img_file, int(img.Size))
 
@@ -149,4 +150,23 @@ func post_new_rental(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(new_post)
+}
+
+func get_image(c *fiber.Ctx) error {
+	img_id := c.Params("img_id")
+
+	u, _ := url.Parse("http://seaweed-proxy-service/")
+	u = u.JoinPath(img_id)
+	agent := fiber.Get(u.String())
+
+	statusCode, body, err_agent := agent.Bytes()
+	if len(err_agent) > 0 {
+		return c.Status(fiber.StatusInternalServerError).JSON(err_agent)
+	}
+
+	if statusCode != 200 {
+		return c.Status(fiber.StatusInternalServerError).JSON(body)
+	}
+
+	return c.SendStream(bytes.NewReader((body)))
 }

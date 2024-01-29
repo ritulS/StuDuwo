@@ -6,6 +6,7 @@
 traefik:
   additionalArguments:
     - --accesslog
+    - --serversTransport.insecureSkipVerify=true
     - --providers.kubernetescrd
     - --entrypoints.websecure.Address=:443
     - --entrypoints.websecure.http.tls.certresolver=cloudflare
@@ -61,8 +62,11 @@ docker-registry:
   replicaCount: 1
   persistence:
     enabled: true
-    size: 60Gi
+    size: 30Gi
     deleteEnabled: true
     storageClass: local-path
   # secrets:
   #   htpasswd:
+
+cert-manager:
+  installCRDs: true

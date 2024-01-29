@@ -6,16 +6,16 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: api   
+      app: database
   policyTypes:
   - Ingress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: database
-
-# only seaweed proxy can talk to seaweed  
+          app: api
+---
+#only seaweed proxy can talk to seaweed  
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,16 +23,15 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: seaweed-proxy   
+      name: seaweedfs
   policyTypes:
   - Ingress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: seaweedfs
-
-
+          app: seaweed-proxy
+---
 # api can only talk to proxy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -41,11 +40,11 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: api   
+      app: seaweed-proxy
   policyTypes:
   - Ingress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: seaweed-proxy
+          app: api

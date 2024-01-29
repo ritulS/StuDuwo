@@ -1,7 +1,38 @@
-# Cluster Issuer
 apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
+kind: Certificate
+metadata:
+  name: internal-ca
+  namespace: default
+spec:
+  isCA: true
+  commonName: internal-ca
+  subject:
+    organizations:
+      - Studuwo Inc.
+    organizationalUnits:
+      - Rentals
+  secretName: internal-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
 metadata:
   name: selfsigned-issuer
+  namespace: default
 spec:
   selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: internal-ca-issuer
+  namespace: default
+spec:
+  ca:
+    secretName: internal-ca-secret

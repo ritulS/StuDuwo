@@ -30,3 +30,8 @@ dependencies:
   - name: traefik
     repository: https://helm.traefik.io/traefik
     version: 26.0.0
+  - name: cert-manager
+    repository: https://charts.jetstack.io
+    version: 1.13.3
+    alias: cert-manager
+    condition: cert-manager.enabled

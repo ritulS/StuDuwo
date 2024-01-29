@@ -2,10 +2,9 @@
 hosts:
   site: site.348575.xyz
   api: api.348575.xyz
-  content: content.348575.xyz
 
 site:
-  image: registry.348575.xyz/studuwo/site:1.0.1
+  image: registry.348575.xyz/studuwo/site:1.0.2
   replicas: 1
   containerPort: 80
   service:
@@ -14,18 +13,18 @@ site:
     targetPort: 80
 
 api:
-  image: registry.348575.xyz/studuwo/api:1.0.6
+  image: registry.348575.xyz/studuwo/api:1.0.11
   replicas: 1
-  containerPort: 8080
+  containerPort: 5000
   service:
     name: api-service
-    port: 8080
-    targetPort: 5000
+    port: 443
+    targetPort: 443
 
 sp:
-  image: registry.348575.xyz/studuwo/seaweed-proxy:1.0.7
+  image: registry.348575.xyz/studuwo/seaweed-proxy:1.0.8
   replicas: 1
-  containerPort: 80
+  containerPort: 5000
   service:
     name: seaweed-proxy-service
     port: 80
