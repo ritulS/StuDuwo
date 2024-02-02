@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/url"
@@ -93,7 +94,7 @@ func total_listings(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-func get_all_listings(c *fiber.Ctx) error { // Modify this to enable pagination
+func get_all_listings(c *fiber.Ctx) error {
 	rental_list := make([]Rental, 0)
 	page, _ := strconv.Atoi(c.Params("page"))
 	if page <= 0 {
@@ -135,17 +136,21 @@ func post_new_rental(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(res.Error)
 	}
 
-	u, _ := url.Parse("http://seaweed-proxy-service/")
+	u, _ := url.Parse("https://seaweed-proxy-service/")
 	u = u.JoinPath(new_post.ImgId)
-	agent := fiber.Post(u.String())
+	agent := fiber.Post(u.String()).TLSConfig(&tls.Config{
+		InsecureSkipVerify: true,
+	})
 	agent.BodyStream(img_file, int(img.Size))
 
 	statusCode, body, err_agent := agent.Bytes()
 	if len(err_agent) > 0 {
+		log.Println(err_agent)
 		return c.Status(fiber.StatusInternalServerError).JSON(err_agent)
 	}
 
 	if statusCode != 200 {
+		log.Println(body)
 		return c.Status(fiber.StatusInternalServerError).JSON(body)
 	}
 
@@ -155,9 +160,11 @@ func post_new_rental(c *fiber.Ctx) error {
 func get_image(c *fiber.Ctx) error {
 	img_id := c.Params("img_id")
 
-	u, _ := url.Parse("http://seaweed-proxy-service/")
+	u, _ := url.Parse("https://seaweed-proxy-service/")
 	u = u.JoinPath(img_id)
-	agent := fiber.Get(u.String())
+	agent := fiber.Get(u.String()).TLSConfig(&tls.Config{
+		InsecureSkipVerify: true,
+	})
 
 	statusCode, body, err_agent := agent.Bytes()
 	if len(err_agent) > 0 {

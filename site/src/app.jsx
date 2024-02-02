@@ -4,7 +4,7 @@ import { Header } from "./header.jsx";
 import { Listings } from "./listings.jsx";
 import { Posting } from "./posting.jsx";
 
-const URL = "https://api.348575.xyz";
+const URL = "https://sd-api.348575.xyz";
 const root_div = document.getElementById("root");
 const root = createRoot(root_div);
 

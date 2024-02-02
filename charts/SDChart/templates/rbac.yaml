@@ -12,16 +12,16 @@ metadata:
 rules:
   - apiGroups:
       - ""
+      - "cert-manager.io"
       - "apps"
       - "batch"
-      - "cert-manager.io"
     resources:
+      - certificates
+      - secrets
       - statefulsets
       - pods
       - deployments
       - jobs
-      - certificates
-      - secrets
     verbs:
       - create
       - get
@@ -77,3 +77,73 @@ spec:
           - --timeout=600s
           - statefulset/seaweedfs-filer
       restartPolicy: Never
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: basic
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: basic
+  namespace: default
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - "pods"
+    verbs:
+      - "get"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: basic
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: basic
+subjects:
+- kind: ServiceAccount
+  name: basic
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microservice-default
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: microservice-default
+  namespace: default
+rules:
+  - apiGroups:
+      - ""
+      - "cert-manager.io"
+    resources:
+      - certificates
+      - secrets
+    verbs:
+      - create
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: microservice-default
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: microservice-default
+subjects:
+- kind: ServiceAccount
+  name: microservice-default
+  namespace: default

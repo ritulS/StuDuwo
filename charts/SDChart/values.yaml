@@ -1,11 +1,11 @@
 ## must be specified
 hosts:
-  site: site.348575.xyz
-  api: api.348575.xyz
+  site: studuwo.348575.xyz
+  api: sd-api.348575.xyz
 
 site:
-  image: registry.348575.xyz/studuwo/site:1.0.2
-  replicas: 1
+  image: docker-registry.348575.xyz/studuwo/site:1.0.3
+  replicas: 4
   containerPort: 80
   service:
     name: site-service
@@ -13,8 +13,17 @@ site:
     targetPort: 80
 
 api:
-  image: registry.348575.xyz/studuwo/api:1.0.11
-  replicas: 1
+  image: docker-registry.348575.xyz/studuwo/api:1.0.15
+  replicas: 4
+  containerPort: 5000
+  service:
+    name: api-service
+    port: 443
+    targetPort: 443
+
+api_canary:
+  image: docker-registry.348575.xyz/studuwo/api:1.0.16
+  replicas: 2
   containerPort: 5000
   service:
     name: api-service
@@ -22,19 +31,19 @@ api:
     targetPort: 443
 
 sp:
-  image: registry.348575.xyz/studuwo/seaweed-proxy:1.0.8
-  replicas: 1
+  image: docker-registry.348575.xyz/studuwo/seaweed-proxy:1.0.10
+  replicas: 2
   containerPort: 5000
   service:
     name: seaweed-proxy-service
-    port: 80
-    targetPort: 5000
+    port: 443
+    targetPort: 443
 
 database:
   image: postgres
   replicas: 1
   containerPort: 5432
-  accessModes: ReadWriteMany
+  accessModes: ReadWriteOnce
   persistentVolume:
     storage: 1Gi
     hostPath: /postgres-data # Change this 
@@ -44,16 +53,53 @@ database:
     name: database-service
     port: 5432
     targetPort: 5432
-  # POSTGRES_USERNAME:
-  # POSTGRES_PASSWORD:
+  POSTGRES_USERNAME: c3R1ZHV3bw==
+  POSTGRES_PASSWORD: dGVzdA==
 
 seaweedfs:
   filer:
+    data:
+      type: "persistentVolumeClaim"
+      size: "30Gi"
+      storageClass: "standard-disk"
+    logs:
+      type: "persistentVolumeClaim"
+      size: "1Gi"
+      storageClass: "standard-disk"
     s3:
       enabled: true
       skipAuthSecretCreation: true
       existingConfigSecret: seaweed-s3-secret
+  master:
+    data:
+      type: "persistentVolumeClaim"
+      size: "30Gi"
+      storageClass: "standard-disk"
+    logs:
+      type: "persistentVolumeClaim"
+      size: "1Gi"
+      storageClass: "standard-disk"
+  volume:
+    enabled: true
+    data:
+      type: "persistentVolumeClaim"
+      size: "30Gi"
+      storageClass: "standard-disk"
+    dataDirs:
+    - name: data1
+      type: "persistentVolumeClaim"
+      size: "30Gi"
+      storageClass: "standard-disk"
+    idx:
+      type: "persistentVolumeClaim"
+      size: "1Gi"
+      storageClass: "standard-disk"
+    logs:
+      type: "persistentVolumeClaim"
+      size: "1Gi"
+      storageClass: "standard-disk"
 
+# specify these
 # seaweed:
 #   admin:
 #     accessKey:

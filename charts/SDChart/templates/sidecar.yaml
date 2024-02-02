@@ -26,5 +26,6 @@ data:
           proxy_pass_header Server;
           proxy_cache_bypass $http_upgrade;
           proxy_redirect off;
+          client_max_body_size 5M;
       }
     }

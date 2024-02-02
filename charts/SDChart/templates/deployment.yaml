@@ -13,6 +13,9 @@ spec:
       labels:
         app: site
     spec:
+      imagePullSecrets:
+      - name: docker-registry.348575.xyz
+      serviceAccountName: basic
       containers:
       - name: site
         image: {{.Values.site.image}}
@@ -29,11 +32,15 @@ spec:
   selector:
     matchLabels:
       app: api
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: api
+        version: v1.0.0
     spec:
+      imagePullSecrets:
+      - name: docker-registry.348575.xyz
       serviceAccountName: wait-for-deps
       initContainers:
       - name: wait-for-deps
@@ -45,7 +52,7 @@ spec:
           - --timeout=600s
           - statefulset/database-deployment
       - name: gen-cert
-        image: registry.348575.xyz/studuwo/kubectl-envsubst:1.0.0 
+        image: docker-registry.348575.xyz/studuwo/kubectl-envsubst:1.0.0 
         command:
           - /config/gen.sh
         env:
@@ -125,6 +132,8 @@ spec:
       labels:
         app: seaweed-proxy
     spec:
+      imagePullSecrets:
+      - name: docker-registry.348575.xyz
       serviceAccountName: wait-for-deps
       initContainers:
       - name: wait-for-deps
@@ -134,6 +143,26 @@ spec:
           - job/wait-for-backend-deps
           - --for=condition=complete
           - --timeout=600s
+      - name: gen-cert
+        image: docker-registry.348575.xyz/studuwo/kubectl-envsubst:1.0.0 
+        command:
+          - /config/gen.sh
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SVC_NAME
+          value: {{.Values.sp.service.name}}
+        volumeMounts:
+          - mountPath: /config
+            name: gen-cert
+          - mountPath: /gen-certs
+            name: certs
       containers:
       - name: seaweed-proxy
         image: {{.Values.sp.image}}
@@ -154,6 +183,33 @@ spec:
           value: seaweedfs-s3
         ports:
         - containerPort: {{.Values.sp.containerPort}}
+      - name: api-sidecar
+        image: nginx
+        volumeMounts:
+          - mountPath: /gen-certs
+            name: certs
+          - mountPath: /etc/nginx/conf.d/
+            name: nginx-conf
+        ports:
+        - containerPort: {{.Values.sp.service.targetPort}}
+      volumes:
+        - name: certs
+          emptyDir: {}
+        - name: gen-cert
+          configMap:
+            name: gen-cert
+            items:
+              - key: gen.sh
+                path: gen.sh
+                mode: 0777
+              - key: config.yaml
+                path: config.yaml
+        - name: nginx-conf
+          configMap:
+            name: nginx-sidecar
+            items:
+              - key: default.conf
+                path: default.conf
 ---
 # postgres Deployment
 apiVersion: apps/v1
@@ -170,6 +226,7 @@ spec:
       labels:
         app: database
     spec:
+      serviceAccountName: basic
       volumes:
       - name: postgres-pv-storage
         persistentVolumeClaim:
@@ -194,29 +251,28 @@ spec:
         ports:
         - containerPort: {{.Values.database.containerPort}}
 ---
-# PersistentVolume
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: postgres-pv-storage
-spec:
-  storageClassName: local-path
-  persistentVolumeReclaimPolicy: Retain
-  capacity:
-    storage: {{.Values.database.persistentVolume.storage}}
-  accessModes: 
-    - ReadWriteMany
-  hostPath:
-    path: {{.Values.database.persistentVolume.hostPath}}
----
 # PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pv-claim
 spec:
+  storageClassName: standard-disk
   accessModes:
     - {{.Values.database.accessModes}}
   resources:
     requests:
       storage: {{.Values.database.persistentVolumeClaim.storage}}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-disk
+provisioner: kubernetes.io/gce-pd
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none

@@ -8,14 +8,15 @@ traefik:
     - --accesslog
     - --serversTransport.insecureSkipVerify=true
     - --providers.kubernetescrd
-    - --entrypoints.websecure.Address=:443
+    - --entrypoints.web.Address=:8080
+    - --entrypoints.websecure.Address=:8443
     - --entrypoints.websecure.http.tls.certresolver=cloudflare
     - --entrypoints.websecure.http.tls.domains[0].main=348575.xyz
     - --entrypoints.websecure.http.tls.domains[0].sans[0]=*348575.xyz
     - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
     - --certificatesresolvers.cloudflare.acme.email=kjosephsubash@gmail.com
     - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53
-    - --certificatesresolvers.cloudflare.acme.storage=/certs/acme.json
+    - --certificatesresolvers.cloudflare.acme.storage=/tmp/acme.json
 
   logs:
     general:
@@ -23,10 +24,11 @@ traefik:
 
   ports:
     web:
+      port: 8080
       redirectTo:
         port: websecure
     websecure:
-      port: 443
+      port: 8443
 
   ingressRoute:
     dashboard:
@@ -53,10 +55,17 @@ traefik:
     enabled: true
     path: /certs
     size: 128Mi
+    storageClass: standard
+
+  service:
+    enabled: true
+    type: LoadBalancer
+    # specify this
+    # loadBalancerIP:
 
 ## must be specified
 hosts:
-  registry: registry.348575.xyz
+  registry: docker-registry.348575.xyz
 
 docker-registry:
   replicaCount: 1
@@ -64,7 +73,8 @@ docker-registry:
     enabled: true
     size: 30Gi
     deleteEnabled: true
-    storageClass: local-path
+    storageClass: standard-rwo
+  # specify this
   # secrets:
   #   htpasswd:
 
